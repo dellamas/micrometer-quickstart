@@ -15,6 +15,8 @@ import io.micrometer.core.instrument.Tags;
 @Produces("text/plain")
 public class ExampleResource {
 
+    static final int MAX_GAUGE_SIZE = 100;
+
     private final MeterRegistry registry;
     private final ConcurrentLinkedDeque<Long> list = new ConcurrentLinkedDeque<>();
 
@@ -78,6 +80,9 @@ public class ExampleResource {
     public Long checkListSize(@PathParam("number") long number) {
         if (number == 2 || number % 2 == 0) {
             list.add(number);
+            while (list.size() > MAX_GAUGE_SIZE) {
+                list.pollFirst();
+            }
             return number;
         }
 
