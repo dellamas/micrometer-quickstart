@@ -1,7 +1,6 @@
 package org.acme.micrometer;
 
-import java.util.LinkedList;
-import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -17,7 +16,7 @@ import io.micrometer.core.instrument.Tags;
 public class ExampleResource {
 
     private final MeterRegistry registry;
-    private final LinkedList<Long> list = new LinkedList<>();
+    private final ConcurrentLinkedDeque<Long> list = new ConcurrentLinkedDeque<>();
 
     ExampleResource(MeterRegistry registry) {
         this.registry = registry;
@@ -37,7 +36,12 @@ public class ExampleResource {
                     .increment();
             return number + " is not prime.";
         }
-        if (number == 2 || number % 2 == 0) {
+        if (number == 2) {
+            registry.counter("example.prime.number", "type", "prime")
+                    .increment();
+            return number + " is prime.";
+        }
+        if (number % 2 == 0) {
             registry.counter("example.prime.number", "type", "even")
                     .increment();
             return number + " is not prime.";
@@ -73,16 +77,11 @@ public class ExampleResource {
     @Path("gauge/{number}")
     public Long checkListSize(@PathParam("number") long number) {
         if (number == 2 || number % 2 == 0) {
-            // add even numbers to the list
             list.add(number);
-        } else {
-            // remove items from the list for odd numbers
-            try {
-                number = list.removeFirst();
-            } catch (NoSuchElementException nse) {
-                number = 0;
-            }
+            return number;
         }
-        return number;
+
+        Long removed = list.pollFirst();
+        return removed != null ? removed : 0L;
     }
 }
