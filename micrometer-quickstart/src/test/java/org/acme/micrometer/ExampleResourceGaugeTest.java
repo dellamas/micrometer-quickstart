@@ -22,4 +22,13 @@ class ExampleResourceGaugeTest {
 
         assertEquals(0L, resource.checkListSize(3));
     }
+
+    @Test
+    void shouldIgnoreNegativeGaugeInputs() {
+        ExampleResource resource = new ExampleResource(new SimpleMeterRegistry());
+
+        assertEquals(0L, resource.checkListSize(-2));
+        assertEquals(0L, resource.checkListSize(3));
+    }
+
 }

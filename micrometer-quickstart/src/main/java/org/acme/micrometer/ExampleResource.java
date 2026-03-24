@@ -78,6 +78,10 @@ public class ExampleResource {
     @GET
     @Path("gauge/{number}")
     public Long checkListSize(@PathParam("number") long number) {
+        if (number < 0) {
+            registry.counter("example.gauge.number", "type", "negative").increment();
+            return 0L;
+        }
         if (number == 2 || number % 2 == 0) {
             list.add(number);
             while (list.size() > MAX_GAUGE_SIZE) {
